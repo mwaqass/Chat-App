@@ -4,6 +4,21 @@ use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
+
+/**
+ * Root route - redirects authenticated users to dashboard,
+ * unauthenticated users to login page
+ */
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
@@ -11,17 +26,23 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-// Dashboard routes
+/**
+ * Authenticated user routes
+ * All routes in this group require user authentication
+ */
 Route::middleware(['auth'])->group(function () {
+
+    // Dashboard and user management routes
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [DashboardController::class, 'getProfile'])->name('profile');
     Route::get('/search-partners', [DashboardController::class, 'searchPartners'])->name('search.partners');
 
-    // Conversation routes
+    // Real-time conversation routes
     Route::get('/conversation/{conversationPartner}', [ConversationController::class, 'show'])->name('conversation.show');
     Route::get('/conversation/{conversationPartner}/messages', [ConversationController::class, 'getMessages'])->name('conversation.messages');
     Route::post('/conversation/{conversationPartner}/send', [ConversationController::class, 'sendMessage'])->name('conversation.send');
     Route::get('/conversation-partners', [ConversationController::class, 'getConversationPartners'])->name('conversation.partners');
 });
 
+// Include authentication routes (login, register, password reset, etc.)
 require __DIR__ . '/auth.php';
