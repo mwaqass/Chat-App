@@ -7,6 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * User Model
+ *
+ * Represents a user in the conversation application.
+ * Handles authentication, relationships with messages,
+ * and user-specific functionality.
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -43,5 +50,35 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Get all messages sent by this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function sentMessages()
+    {
+        return $this->hasMany(ConversationMessage::class, 'sender_id');
+    }
+
+    /**
+     * Get all messages received by this user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function receivedMessages()
+    {
+        return $this->hasMany(ConversationMessage::class, 'recipient_id');
+    }
+
+    /**
+     * Get the user's display name for conversations.
+     *
+     * @return string
+     */
+    public function getDisplayNameAttribute()
+    {
+        return $this->name ?: $this->email;
     }
 }
