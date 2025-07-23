@@ -42,6 +42,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/conversation/{conversationPartner}/messages', [ConversationController::class, 'getMessages'])->name('conversation.messages');
     Route::post('/conversation/{conversationPartner}/send', [ConversationController::class, 'sendMessage'])->name('conversation.send');
     Route::get('/conversation-partners', [ConversationController::class, 'getConversationPartners'])->name('conversation.partners');
+
+    // Enhanced conversation features
+    Route::get('/conversation-stats', [ConversationController::class, 'getStats'])->name('conversation.stats');
+    Route::post('/conversation/{conversationPartner}/mark-read', [ConversationController::class, 'markAsRead'])->name('conversation.mark-read');
 });
 
 // Include authentication routes (login, register, password reset, etc.)
