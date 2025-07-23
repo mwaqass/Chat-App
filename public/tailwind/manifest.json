@@ -1,16 +1,16 @@
 {
   "themes/tailwind/css/app.css": {
-    "file": "assets/app-Ch7mjZRV.css",
+    "file": "assets/app-GV3nm3ih.css",
     "src": "themes/tailwind/css/app.css",
     "isEntry": true
   },
   "themes/tailwind/js/app.js": {
-    "file": "assets/app-B_UjfwHq.js",
+    "file": "assets/app-BIPhn2a6.js",
     "name": "app",
     "src": "themes/tailwind/js/app.js",
     "isEntry": true,
     "css": [
-      "assets/app-DDqKvRU0.css"
+      "assets/app-BlMHg2zZ.css"
     ]
   }
 }

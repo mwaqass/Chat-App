@@ -69,7 +69,7 @@
                                 :class="message.sender_id === currentUser.id
                                     ? 'text-blue-100'
                                     : 'text-gray-500'"
-                            >
+                    >
                                 {{ formatMessageTime(message.created_at) }}
                             </span>
                             <div v-if="message.sender_id === currentUser.id" class="flex items-center space-x-1">
@@ -102,18 +102,18 @@
             <div class="flex items-end space-x-3">
                 <div class="flex-1">
                     <textarea
-                        v-model="newMessageContent"
+                v-model="newMessageContent"
                         @keydown="handleKeyDown"
                         @input="handleTypingIndicator"
-                        placeholder="Type your message..."
+                placeholder="Type your message..."
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                         rows="1"
                         ref="messageInput"
                         :disabled="sending"
                     ></textarea>
                 </div>
-                <button
-                    @click="sendConversationMessage"
+            <button
+                @click="sendConversationMessage"
                     :disabled="!newMessageContent.trim() || sending"
                     class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
                 >
@@ -125,7 +125,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                     </svg>
                     <span>{{ sending ? 'Sending...' : 'Send' }}</span>
-                </button>
+            </button>
             </div>
 
             <!-- Error Message -->
@@ -188,12 +188,12 @@ watch(newMessageContent, () => {
 });
 
 const scrollToBottom = () => {
-    if (messagesContainer.value) {
-        messagesContainer.value.scrollTo({
-            top: messagesContainer.value.scrollHeight,
-            behavior: "smooth",
-        });
-    }
+            if (messagesContainer.value) {
+                messagesContainer.value.scrollTo({
+                    top: messagesContainer.value.scrollHeight,
+                    behavior: "smooth",
+                });
+            }
 };
 
 const formatMessageTime = (timestamp) => {
@@ -238,20 +238,20 @@ const sendConversationMessage = async () => {
         messageInput.value.style.height = 'auto';
     }
 
-    try {
-        const response = await axios.post(
-            `/conversation/${props.conversationPartner.id}/send`,
-            {
+        try {
+            const response = await axios.post(
+                `/conversation/${props.conversationPartner.id}/send`,
+                {
                 content: messageContent,
-            }
-        );
+                }
+            );
 
         // Add sent status to the message
         const messageWithStatus = { ...response.data, sent: true };
         conversationMessages.value.push(messageWithStatus);
 
-    } catch (error) {
-        console.error('Error sending message:', error);
+        } catch (error) {
+            console.error('Error sending message:', error);
         errorMessage.value = "Failed to send message. Please try again.";
         // Restore the message content
         newMessageContent.value = messageContent;
@@ -262,9 +262,9 @@ const sendConversationMessage = async () => {
 
 const handleTypingIndicator = () => {
     if (typeof window.Echo !== 'undefined') {
-        Echo.private(`conversation.${props.conversationPartner.id}`).whisper("typing", {
-            userId: props.currentUser.id,
-        });
+    Echo.private(`conversation.${props.conversationPartner.id}`).whisper("typing", {
+        userId: props.currentUser.id,
+    });
     }
 };
 
