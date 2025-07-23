@@ -2,6 +2,19 @@
 
 A real-time conversation application built with Laravel 11, Vue.js, and Laravel Reverb for instant messaging capabilities.
 
+## 📋 Table of Contents
+
+- [Features](#-features)
+- [Prerequisites](#-prerequisites)
+- [Installation & Setup](#️-installation--setup)
+- [Running the Application](#-running-the-application)
+- [Testing Real-Time Conversation](#-testing-real-time-conversation)
+- [Project Structure](#-project-structure)
+- [Key Components](#-key-components)
+- [Troubleshooting](#-troubleshooting)
+- [Contributing](#-contributing)
+- [License](#-license)
+
 ## 🚀 Features
 
 - **Real-time Messaging**: Instant message delivery using Laravel Reverb
