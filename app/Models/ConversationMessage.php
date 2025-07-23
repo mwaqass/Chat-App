@@ -29,7 +29,8 @@ class ConversationMessage extends Model
     protected $fillable = [
         'sender_id',
         'recipient_id',
-        'content'
+        'content',
+        'read_at'
     ];
 
     /**
@@ -40,6 +41,7 @@ class ConversationMessage extends Model
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'read_at' => 'datetime',
     ];
 
     /**
@@ -128,5 +130,57 @@ class ConversationMessage extends Model
     public function getFormattedDateAttribute()
     {
         return $this->created_at->format('M j, Y');
+    }
+
+    /**
+     * Check if the message has been read.
+     *
+     * @return bool
+     */
+    public function isRead(): bool
+    {
+        return !is_null($this->read_at);
+    }
+
+    /**
+     * Mark the message as read.
+     *
+     * @return bool
+     */
+    public function markAsRead(): bool
+    {
+        if (!$this->isRead()) {
+            $this->update(['read_at' => now()]);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Scope to get unread messages for a user.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $userId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeUnreadForUser($query, $userId)
+    {
+        return $query->where('recipient_id', $userId)
+                    ->whereNull('read_at');
+    }
+
+    /**
+     * Get unread message count for a user from a specific sender.
+     *
+     * @param int $userId
+     * @param int $senderId
+     * @return int
+     */
+    public static function getUnreadCount(int $userId, int $senderId): int
+    {
+        return static::where('recipient_id', $userId)
+                    ->where('sender_id', $senderId)
+                    ->whereNull('read_at')
+                    ->count();
     }
 }

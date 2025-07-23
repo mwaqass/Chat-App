@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\ConversationMessageSent;
-use App\Models\ConversationMessage;
+use App\Services\ConversationService;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -13,14 +14,31 @@ use Illuminate\Support\Facades\Log;
  *
  * Handles all conversation-related actions including
  * message retrieval, sending, and real-time broadcasting.
+ * Uses ConversationService for business logic separation.
  */
 class ConversationController extends Controller
 {
+    protected ConversationService $conversationService;
+
+    public function __construct(ConversationService $conversationService)
+    {
+        $this->conversationService = $conversationService;
+    }
+
     /**
      * Display the conversation interface with a specific user.
+     *
+     * @param User $conversationPartner
+     * @return View
      */
-    public function show(User $conversationPartner)
+    public function show(User $conversationPartner): View
     {
+        // Mark messages as read when opening conversation
+        $this->conversationService->markMessagesAsRead(
+            auth()->id(),
+            $conversationPartner->id
+        );
+
         return view('conversation', [
             'conversationPartner' => $conversationPartner
         ]);
@@ -28,66 +46,145 @@ class ConversationController extends Controller
 
     /**
      * Retrieve conversation messages between the authenticated user and a partner.
+     *
+     * @param User $conversationPartner
+     * @return JsonResponse
      */
-    public function getMessages(User $conversationPartner)
+    public function getMessages(User $conversationPartner): JsonResponse
     {
-        $messages = ConversationMessage::betweenUsers(
-            auth()->id(),
-            $conversationPartner->id
-        )
-        ->with(['sender', 'recipient'])
-        ->orderBy('created_at', 'asc')
-        ->get();
+        try {
+            $messages = $this->conversationService->getConversationHistory(
+                auth()->id(),
+                $conversationPartner->id,
+                100
+            );
 
-        return response()->json($messages);
+            return response()->json($messages);
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve conversation messages', [
+                'user_id' => auth()->id(),
+                'partner_id' => $conversationPartner->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to load conversation history'
+            ], 500);
+        }
     }
 
     /**
      * Send a new message to a conversation partner.
+     *
+     * @param Request $request
+     * @param User $conversationPartner
+     * @return JsonResponse
      */
-    public function sendMessage(Request $request, User $conversationPartner)
+    public function sendMessage(Request $request, User $conversationPartner): JsonResponse
     {
         $request->validate([
-            'content' => 'required|string|max:1000',
-        ]);
-
-        $message = ConversationMessage::create([
-            'sender_id' => auth()->id(),
-            'recipient_id' => $conversationPartner->id,
-            'content' => $request->input('content')
-        ]);
-
-        // Load relationships for broadcasting
-        $message->load(['sender', 'recipient']);
-
-        Log::info('Broadcasting conversation message', [
-            'message_id' => $message->id,
-            'sender_id' => $message->sender_id,
-            'recipient_id' => $message->recipient_id,
-            'channel' => "conversation.{$message->recipient_id}",
-            'event' => 'ConversationMessageSent'
+            'content' => 'required|string|max:1000|min:1',
+        ], [
+            'content.required' => 'Message content is required.',
+            'content.max' => 'Message cannot exceed 1000 characters.',
+            'content.min' => 'Message cannot be empty.'
         ]);
 
         try {
-            // Broadcast the message for real-time delivery
-            broadcast(new ConversationMessageSent($message));
-            Log::info('Message broadcasted successfully');
-        } catch (\Exception $e) {
-            Log::error('Failed to broadcast message: ' . $e->getMessage());
-        }
+            $message = $this->conversationService->sendMessage(
+                auth()->id(),
+                $conversationPartner->id,
+                $request->input('content')
+            );
 
-        return response()->json($message);
+            return response()->json($message, 201);
+        } catch (\Exception $e) {
+            Log::error('Failed to send message', [
+                'user_id' => auth()->id(),
+                'partner_id' => $conversationPartner->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to send message. Please try again.'
+            ], 500);
+        }
     }
 
     /**
      * Get all available conversation partners for the authenticated user.
+     *
+     * @return JsonResponse
      */
-    public function getConversationPartners()
+    public function getConversationPartners(): JsonResponse
     {
-        $partners = User::whereNot('id', auth()->id())
-            ->select('id', 'name', 'email')
-            ->get();
+        try {
+            $partners = $this->conversationService->getOnlineUsers();
 
-        return response()->json($partners);
+            return response()->json($partners);
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve conversation partners', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to load conversation partners'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get conversation statistics for the authenticated user.
+     *
+     * @return JsonResponse
+     */
+    public function getStats(): JsonResponse
+    {
+        try {
+            $stats = $this->conversationService->getConversationStats(auth()->id());
+
+            return response()->json($stats);
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve conversation stats', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to load conversation statistics'
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark messages as read for a specific conversation.
+     *
+     * @param User $conversationPartner
+     * @return JsonResponse
+     */
+    public function markAsRead(User $conversationPartner): JsonResponse
+    {
+        try {
+            $updatedCount = $this->conversationService->markMessagesAsRead(
+                auth()->id(),
+                $conversationPartner->id
+            );
+
+            return response()->json([
+                'message' => 'Messages marked as read',
+                'updated_count' => $updatedCount
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to mark messages as read', [
+                'user_id' => auth()->id(),
+                'partner_id' => $conversationPartner->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to mark messages as read'
+            ], 500);
+        }
     }
 }
