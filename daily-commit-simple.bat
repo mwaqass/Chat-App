@@ -1,0 +1,1 @@
+@echo off && cd /d "C:\laragon\www\Chat-App" && echo. >> README.md && echo ^<!-- Daily update: %date% %time% --^> >> README.md && git add . && git commit -m "chore: daily maintenance update - %date% %time%" && git push origin master && echo Daily commit completed! && pause
