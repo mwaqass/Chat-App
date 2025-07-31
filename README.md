@@ -254,29 +254,7 @@ Check browser console and Laravel logs for detailed error information.
 4. Test thoroughly
 5. Submit a pull request
 
-## 📄 License
-
-This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-
 ---
 
 **Happy Conversing! 🎉**
  
- 
- 
-<!-- Auto-update: Wed 07/23/2025  8:42:31.46 --> 
-  
-<!-- Daily update: Wed 07/23/2025  8:43:55.68 -->  
-
-
-<!-- Last auto-update: 2025-07-23 08:45:22 -->
-
-<!-- Last auto-update: 2025-07-25 14:35:15 -->
-
-<!-- Last auto-update: 2025-07-28 15:49:53 -->
-
-<!-- Last auto-update: 2025-07-29 12:41:07 -->
-
-<!-- Last auto-update: 2025-07-30 14:47:52 -->
-
-<!-- Last auto-update: 2025-07-31 14:31:30 -->
